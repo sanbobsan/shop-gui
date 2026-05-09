@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from sqlalchemy import CheckConstraint, ForeignKey, Numeric
@@ -72,7 +72,7 @@ class Receipt(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(datetime.timezone.utc)
+        default=lambda: datetime.now(timezone.utc)
     )
 
     items: Mapped[list["SaleItem"]] = relationship(back_populates="receipt")
