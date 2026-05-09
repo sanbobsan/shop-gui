@@ -7,6 +7,3 @@ check:
 
 format:
 	poetry run ruff format src
-
-ui: 
-	poetry run pyside6-designer
