@@ -1,4 +1,4 @@
-from .db import Base, create_tables
+from .db import Base, create_tables, session_local
 from .models import (
     Category,
     Employee,
@@ -11,6 +11,7 @@ from .models import (
 __all__ = (
     "Base",
     "create_tables",
+    "session_local",
     "Category",
     "Product",
     "SaleItem",
