@@ -1,4 +1,4 @@
-from .db_helper import Base, create_tables
+from .db import Base, create_tables
 from .models import (
     Category,
     Employee,

@@ -3,7 +3,7 @@ from typing import Generic, Type, TypeVar
 from sqlalchemy import Sequence, delete, select
 from sqlalchemy.orm import Session
 
-from app.db import Base
+from app.database import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
 
