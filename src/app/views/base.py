@@ -51,16 +51,18 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
             ft.TextField(
                 label=(field.title),
                 data=(field.name),
+                expand=True,
             )
             for field in self.BaseSchema.get_field_desc()
         ]
         self.button = ft.Button("Add", on_click=self.add_instance)
-        self.add_row = ft.Row(self.text_fields + [self.button], wrap=True)
+        self.add_row = ft.Row(self.text_fields + [self.button])
         self.cards = ft.Column()
 
+        self.padding = 10
         self.content = ft.Column(
             [
-                self.add_row,
+                ft.Container(self.add_row, padding=5),
                 self.cards,
             ],
             scroll=ft.ScrollMode.AUTO,
