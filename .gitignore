@@ -1,9 +1,16 @@
 
+# python cache
 **/__pycache__/
 **/*.py[cod]
 
+# cache
 .mypy_cache
 .ruff_cache
 
+# virtual environment
 .venv
 venv
+
+# database files
+*.db
+*.sqlite3
