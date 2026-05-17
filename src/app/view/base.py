@@ -62,7 +62,8 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
             [
                 self.add_row,
                 self.cards,
-            ]
+            ],
+            scroll=ft.ScrollMode.AUTO,
         )
 
     def add_instance(self) -> None:
