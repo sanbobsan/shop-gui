@@ -1,13 +1,15 @@
-from .base import (
+from . import base
+from .receipt import ReceiptRepository
+from .repositories import (
     CategoryRepository,
     EmployeeRepository,
     JobTitleRepository,
     ProductRepository,
     SaleItemRepository,
 )
-from .receipt import ReceiptRepository
 
 __all__ = [
+    "base",
     "CategoryRepository",
     "EmployeeRepository",
     "JobTitleRepository",

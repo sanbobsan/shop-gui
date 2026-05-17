@@ -2,9 +2,9 @@ from typing import Callable, Generic, Type, TypeVar
 
 import flet as ft
 
-from app.database import Category, Product, session_local
-from app.repository.base import BaseRepository, ModelType
-from app.schema.base import BaseSchema, CategorySchema, ProductSchema
+from app.database import session_local
+from app.repositories.base import BaseRepository, ModelType
+from app.schemas.base import BaseSchema
 
 BaseSchemaType = TypeVar("BaseSchemaType", bound=BaseSchema)
 
@@ -112,13 +112,3 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
             self.cards.controls.append(card)
 
         self.update()
-
-
-class CategoryContainer(BaseContainer[CategorySchema]):
-    def __init__(self) -> None:
-        super().__init__(CategorySchema, Category)
-
-
-class ProductContainer(BaseContainer[ProductSchema]):
-    def __init__(self) -> None:
-        super().__init__(ProductSchema, Product)

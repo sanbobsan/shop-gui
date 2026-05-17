@@ -3,7 +3,7 @@ from typing import Generic, Type, TypeVar
 from sqlalchemy import Sequence, delete, select
 from sqlalchemy.orm import Session
 
-from app.database import Base, Category, Employee, JobTitle, Product, SaleItem
+from app.database import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
 
@@ -32,28 +32,3 @@ class BaseRepository(Generic[ModelType]):
         result = self.db.execute(stmt)
         self.db.flush()
         return result.rowcount > 0
-
-
-class CategoryRepository(BaseRepository[Category]):
-    def __init__(self, db: Session) -> None:
-        super().__init__(Category, db)
-
-
-class SaleItemRepository(BaseRepository[SaleItem]):
-    def __init__(self, db: Session) -> None:
-        super().__init__(SaleItem, db)
-
-
-class EmployeeRepository(BaseRepository[Employee]):
-    def __init__(self, db: Session) -> None:
-        super().__init__(Employee, db)
-
-
-class JobTitleRepository(BaseRepository[JobTitle]):
-    def __init__(self, db: Session) -> None:
-        super().__init__(JobTitle, db)
-
-
-class ProductRepository(BaseRepository[Product]):
-    def __init__(self, db: Session) -> None:
-        super().__init__(Product, db)

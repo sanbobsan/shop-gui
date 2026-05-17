@@ -1,5 +1,5 @@
 from app.database import Category
-from app.repository import CategoryRepository
+from app.repositories import CategoryRepository
 
 
 class CategoryService:

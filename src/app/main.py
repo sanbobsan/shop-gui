@@ -1,6 +1,6 @@
 import flet as ft
 
-from app.view.base import CategoryContainer, ProductContainer
+from app.views import CategoryContainer, ProductContainer
 
 
 def main(page: ft.Page) -> None:
