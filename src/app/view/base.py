@@ -50,7 +50,8 @@ class BaseContainer(ft.Container, Generic[Schema]):
                 getattr(self, f"{field}_field")
                 for field in self.schema.get_model_fields()
             ]
-            + [self.button]
+            + [self.button],
+            wrap=True
         )
         self.cards = ft.Column()
 
