@@ -13,21 +13,30 @@ class CategoryCard(ft.Card):
         self.name: str = name
         self.button = ft.Button("delete", on_click=lambda _: on_delete(self.id))
 
-        self.content = ft.Row([ft.Text(self.name), self.button])
+        self.content = ft.Row(
+            [
+                ft.Row(
+                    [ft.Text(self.name)],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    expand=True,
+                ),
+                self.button,
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+        )
 
 
 class CategoryContainer(ft.Container):
     def __init__(self) -> None:
         super().__init__()
 
-        self.button = ft.Button("Add Category", on_click=self.add_category)
         self.text_field = ft.TextField(label="Category Name")
+        self.button = ft.Button("Add Category", on_click=self.add_category)
         self.cards = ft.Column()
 
         self.content = ft.Column(
             [
-                self.button,
-                self.text_field,
+                ft.Row([self.text_field, self.button]),
                 self.cards,
             ]
         )
@@ -45,6 +54,7 @@ class CategoryContainer(ft.Container):
 
         category_card = CategoryCard(category.id, category.name, self.delete_category)
         self.cards.controls.append(category_card)
+        self.text_field.value = ""
         self.update()
 
     def delete_category(self, category_id: int) -> None:
