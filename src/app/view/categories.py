@@ -6,17 +6,11 @@ from app.service.category import CategoryService
 
 
 class CategoryCard(ft.Card):
-    def __init__(self, category_name: str) -> None:
+    def __init__(self, id: int, name: str) -> None:
         super().__init__()
 
-        with session_local() as db:
-            repo = CategoryRepository(db)
-            service = CategoryService(repo)
-            category_obj: Category = service.create_category(category_name)
-            db.commit()
-
-            self.id: int = category_obj.id
-            self.name: str = category_obj.name
+        self.id: int = id
+        self.name: str = name
 
         self.content = ft.Text(self.name)
 
@@ -41,6 +35,25 @@ class CategoryContainer(ft.Container):
         category_name: str = self.text_field.value
         if not category_name:
             return
-        category_card = CategoryCard(category_name)
+
+        with session_local() as db:  # dependency injection?
+            repo = CategoryRepository(db)
+            service = CategoryService(repo)
+            category: Category = service.create_category(category_name)
+            db.commit()
+
+        category_card = CategoryCard(category.id, category.name)
         self.cards.controls.append(category_card)
+        self.update()
+
+    def load_categories(self) -> None:
+        with session_local() as db:
+            repo = CategoryRepository(db)
+            service = CategoryService(repo)
+            categories: list[Category] = service.get_all_categories()
+
+        for category in categories:
+            category_card = CategoryCard(category.id, category.name)
+            self.cards.controls.append(category_card)
+
         self.update()
