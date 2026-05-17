@@ -1,4 +1,4 @@
-from app.database import Category, Product
+from app.models import Category, Product
 from app.schemas import CategorySchema, ProductSchema
 
 from .base import BaseContainer

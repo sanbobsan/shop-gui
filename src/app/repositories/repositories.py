@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.database import Category, Employee, JobTitle, Product, SaleItem
+from app.models import Category, Employee, JobTitle, Product, SaleItem
 
 from .base import BaseRepository
 

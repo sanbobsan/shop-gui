@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.database import Receipt
+from app.models import Receipt
 
 from .base import BaseRepository
 

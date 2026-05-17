@@ -1,4 +1,4 @@
-from app.database import Category
+from app.models import Category
 from app.repositories import CategoryRepository
 
 
