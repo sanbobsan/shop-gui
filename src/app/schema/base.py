@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 @dataclass
@@ -19,6 +19,8 @@ class FieldData:
 
 class BaseSchema(BaseModel, ABC):
     id: int | None = Field(None, title="ID")
+
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def get_field_desc(cls, include_id: bool = False) -> list[FieldDesc]:

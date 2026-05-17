@@ -5,6 +5,7 @@ from app.view.base import CategoryContainer, ProductContainer
 
 def main(page: ft.Page) -> None:
 
+    page.title = "shop-gui"
     tabs = ft.Tabs(
         expand=True,
         length=2,
@@ -19,8 +20,8 @@ def main(page: ft.Page) -> None:
                 ft.TabBarView(
                     expand=True,
                     controls=[
-                        CategoryContainer(),
-                        ProductContainer(),
+                        category_container := CategoryContainer(),
+                        product_container := ProductContainer(),
                     ],
                 ),
             ],
@@ -28,6 +29,8 @@ def main(page: ft.Page) -> None:
     )
 
     page.add(ft.SafeArea(expand=True, content=tabs))
+    category_container.load_instances()
+    product_container.load_instances()
 
 
 ft.run(main)
