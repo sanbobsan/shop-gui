@@ -30,7 +30,7 @@ class BaseRepository(Generic[ModelType]):
     def delete(self, id: int) -> bool:
         stmt = delete(self.model).where(self.model.id == id)
         result = self.db.execute(stmt)
-        self.db.commit()
+        self.db.flush()
         return result.rowcount > 0
 
 
