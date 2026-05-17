@@ -14,4 +14,4 @@ def create_tables() -> None:
     Base.metadata.create_all(engine)
 
 
-session_local: sessionmaker[Session] = sessionmaker(bind=engine)
+session_local: sessionmaker[Session] = sessionmaker(bind=engine, expire_on_commit=False)
