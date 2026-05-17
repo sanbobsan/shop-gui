@@ -1,4 +1,4 @@
-from typing import Generic, Type, TypeVar
+from typing import Callable, Generic, Type, TypeVar
 
 import flet as ft
 
@@ -6,26 +6,25 @@ from app.database import Category, Product, session_local
 from app.repository.base import BaseRepository, ModelType
 from app.schema.base import BaseSchema, CategorySchema, ProductSchema
 
-Schema = TypeVar("Schema", bound=BaseSchema)
+BaseSchemaType = TypeVar("BaseSchemaType", bound=BaseSchema)
 
 
-class BaseCard(ft.Card, Generic[Schema]):
-    def __init__(self, schema: Type[Schema], on_delete: callable, **kwds) -> None:
+class BaseCard(ft.Card, Generic[BaseSchemaType]):
+    def __init__(self, schema: BaseSchema, on_delete: Callable[[int], None]) -> None:
         super().__init__()
 
-        # maybe use schema to store field values instead of setting them as attributes?
-        for key, value in kwds.items():
-            setattr(self, key, value)  # maybe use schema prefix?
+        self.schema: BaseSchema = schema
 
-        self.button = ft.Button("delete", on_click=lambda _: on_delete(self.id))
+        assert self.schema.id
+        self.button = ft.Button("Delete", on_click=lambda _: on_delete(self.schema.id))
         self.content_row = ft.Row(
-            [ft.Text(getattr(self, field)) for field in schema.get_model_fields()],
+            controls=[ft.Text(field.value) for field in self.schema.get_field_data()],
             alignment=ft.MainAxisAlignment.CENTER,
             expand=True,
         )
 
         self.content = ft.Row(
-            [
+            controls=[
                 self.content_row,
                 self.button,
             ],
@@ -33,26 +32,23 @@ class BaseCard(ft.Card, Generic[Schema]):
         )
 
 
-class BaseContainer(ft.Container, Generic[Schema]):
-    def __init__(self, schema: Type[Schema], model: Type[ModelType]) -> None:
+class BaseContainer(ft.Container, Generic[BaseSchemaType]):
+    def __init__(self, schema: Type[BaseSchemaType], model: Type[ModelType]) -> None:
         super().__init__()
 
-        self.schema: Type[Schema] = schema
+        self.schema: Type[BaseSchemaType] = schema
         self.model: Type[ModelType] = model
-        self.base_card = BaseCard[Schema]
+        self.base_card = BaseCard[BaseSchemaType]
 
-        for field in self.schema.get_model_fields():
-            setattr(self, f"{field}_field", ft.TextField(label=field.title()))
-
+        self.text_fields: list[ft.TextField] = [
+            ft.TextField(
+                label=(field.title),
+                data=(field.name),
+            )
+            for field in schema.get_field_desc()
+        ]
         self.button = ft.Button("Add", on_click=self.add_instance)
-        self.add_row = ft.Row(
-            [
-                getattr(self, f"{field}_field")
-                for field in self.schema.get_model_fields()
-            ]
-            + [self.button],
-            wrap=True
-        )
+        self.add_row = ft.Row(self.text_fields + [self.button], wrap=True)
         self.cards = ft.Column()
 
         self.content = ft.Column(
@@ -63,30 +59,26 @@ class BaseContainer(ft.Container, Generic[Schema]):
         )
 
     def add_instance(self) -> None:
-        schema_dict = {}
-        for field in self.schema.get_model_fields():
-            schema_dict[field] = getattr(
-                self, f"{field}_field", ft.TextField(label=field.title())
-            ).value
-        schema: Schema = self.schema.model_validate(schema_dict)
+        schema_dict: dict[str, str] = {
+            field.data: field.value for field in self.text_fields
+        }
+        schema: BaseSchemaType = self.schema.model_validate(schema_dict)
 
         with session_local() as db:  # dependency injection?
-            repo: BaseRepository[ModelType] = BaseRepository(
-                self.model, db
-            )  # BaseService?
+            repo: BaseRepository[ModelType] = BaseRepository(self.model, db)
+            # BaseService?
             model: ModelType = repo.create(**schema.model_dump())
             schema.id = model.id
             db.commit()
 
-        card: BaseCard[Schema] = self.base_card(
-            self.schema,
-            lambda _: print(f"{schema.id} deleted"),
-            **schema.model_dump(),
+        card: BaseCard[BaseSchemaType] = self.base_card(
+            schema,
+            lambda _: print(f"{schema} deleted"),
         )
         self.cards.controls.append(card)
 
-        for field in self.schema.get_model_fields():
-            getattr(self, f"{field}_field").value = ""
+        for field in self.text_fields:
+            field.value = ""
 
         self.update()
 
