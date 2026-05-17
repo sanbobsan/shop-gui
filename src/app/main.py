@@ -1,5 +1,7 @@
 import flet as ft
 
+from app.view.base import CategoryContainer, ProductContainer
+
 
 def main(page: ft.Page) -> None:
 
@@ -10,15 +12,15 @@ def main(page: ft.Page) -> None:
             [
                 ft.TabBar(
                     tabs=[
-                        ft.Tab("Tab 1"),
-                        ft.Tab("Tab 2"),
+                        ft.Tab("Categories"),
+                        ft.Tab("Products"),
                     ],
                 ),
                 ft.TabBarView(
                     expand=True,
                     controls=[
-                        ft.Container(content=ft.Text("Tab 1 content")),
-                        ft.Container(content=ft.Text("Tab 2 content")),
+                        CategoryContainer(),
+                        ProductContainer(),
                     ],
                 ),
             ],
