@@ -34,16 +34,26 @@ class BaseRepository(Generic[ModelType]):
         return result.rowcount > 0
 
 
-class CategoryRepository(BaseRepository[Category]): ...
+class CategoryRepository(BaseRepository[Category]):
+    def __init__(self, db: Session) -> None:
+        super().__init__(Category, db)
 
 
-class SaleItemRepository(BaseRepository[SaleItem]): ...
+class SaleItemRepository(BaseRepository[SaleItem]):
+    def __init__(self, db: Session) -> None:
+        super().__init__(SaleItem, db)
 
 
-class EmployeeRepository(BaseRepository[Employee]): ...
+class EmployeeRepository(BaseRepository[Employee]):
+    def __init__(self, db: Session) -> None:
+        super().__init__(Employee, db)
 
 
-class JobTitleRepository(BaseRepository[JobTitle]): ...
+class JobTitleRepository(BaseRepository[JobTitle]):
+    def __init__(self, db: Session) -> None:
+        super().__init__(JobTitle, db)
 
 
-class ProductRepository(BaseRepository[Product]): ...
+class ProductRepository(BaseRepository[Product]):
+    def __init__(self, db: Session) -> None:
+        super().__init__(Product, db)
