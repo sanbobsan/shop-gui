@@ -23,7 +23,7 @@ class BaseRepository(Generic[ModelType]):
     def create(self, **kwds) -> ModelType:
         instance = self.model(**kwds)
         self.db.add(instance)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(instance)
         return instance
 
