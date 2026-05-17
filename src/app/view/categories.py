@@ -6,13 +6,14 @@ from app.service.category import CategoryService
 
 
 class CategoryCard(ft.Card):
-    def __init__(self, id: int, name: str) -> None:
+    def __init__(self, id: int, name: str, on_delete: callable) -> None:
         super().__init__()
 
         self.id: int = id
         self.name: str = name
+        self.button = ft.Button("delete", on_click=lambda _: on_delete(self.id))
 
-        self.content = ft.Text(self.name)
+        self.content = ft.Row([ft.Text(self.name), self.button])
 
 
 class CategoryContainer(ft.Container):
@@ -42,8 +43,20 @@ class CategoryContainer(ft.Container):
             category: Category = service.create_category(category_name)
             db.commit()
 
-        category_card = CategoryCard(category.id, category.name)
+        category_card = CategoryCard(category.id, category.name, self.delete_category)
         self.cards.controls.append(category_card)
+        self.update()
+
+    def delete_category(self, category_id: int) -> None:
+        with session_local() as db:
+            repo = CategoryRepository(db)
+            service = CategoryService(repo)
+            service.delete_category(category_id)
+            db.commit()
+
+        self.cards.controls = [
+            card for card in self.cards.controls if card.id != category_id
+        ]
         self.update()
 
     def load_categories(self) -> None:
@@ -53,7 +66,9 @@ class CategoryContainer(ft.Container):
             categories: list[Category] = service.get_all_categories()
 
         for category in categories:
-            category_card = CategoryCard(category.id, category.name)
+            category_card = CategoryCard(
+                category.id, category.name, self.delete_category
+            )
             self.cards.controls.append(category_card)
 
         self.update()
