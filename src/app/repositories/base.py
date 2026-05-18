@@ -10,25 +10,25 @@ ModelType = TypeVar("ModelType", bound=Base)
 
 class BaseRepository(Generic[ModelType]):
     def __init__(self, model: Type[ModelType], db: Session) -> None:
-        self.model: ModelType = model
+        self.Model: Type[ModelType] = model
         self.db: Session = db
 
     def get(self, id: int) -> ModelType | None:
-        return self.db.get(self.model, id)
+        return self.db.get(self.Model, id)
 
     def get_all(self, **kwargs) -> Sequence[ModelType]:
-        stmt = select(self.model).filter_by(**kwargs)
+        stmt = select(self.Model).filter_by(**kwargs)
         return self.db.scalars(stmt).all()
 
     def create(self, **kwds) -> ModelType:
-        instance = self.model(**kwds)
+        instance = self.Model(**kwds)
         self.db.add(instance)
         self.db.flush()
         self.db.refresh(instance)
         return instance
 
     def delete(self, id: int) -> bool:
-        stmt = delete(self.model).where(self.model.id == id)
+        stmt = delete(self.Model).where(self.Model.id == id)
         result = self.db.execute(stmt)
         self.db.flush()
         return result.rowcount > 0
