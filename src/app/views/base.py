@@ -1,8 +1,8 @@
 from typing import Callable, Generic, Type, TypeVar
 
 import flet as ft
+from sqlalchemy.orm import Session
 
-from app.database import session_local
 from app.repositories.base import BaseRepository, ModelType
 from app.schemas.base import BaseSchema
 from app.services.base import BaseService
@@ -47,12 +47,14 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
         self,
         BaseSchema: Type[BaseSchemaType],
         Model: Type[ModelType],
+        session_factory: Callable[..., Session],
     ) -> None:
         super().__init__()
         # base
         self.BaseSchema: Type[BaseSchemaType] = BaseSchema
         self.Model: Type[ModelType] = Model
         self.BaseCard = BaseCard[BaseSchemaType]
+        self.get_db: Callable[..., Session] = session_factory
         # data
         self.title: str = self.Model.__name__
         # content
@@ -83,7 +85,7 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
         }
         schema: BaseSchemaType = self.BaseSchema.model_validate(schema_dict)
 
-        with session_local() as db:  # dependency injection?
+        with self.get_db() as db:
             repo: BaseRepository[ModelType] = BaseRepository(self.Model, db)
             service: BaseService[ModelType, BaseRepository[ModelType]] = BaseService(
                 repo
@@ -104,7 +106,7 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
         self.update()
 
     def delete_instance(self, instance_id: int) -> None:
-        with session_local() as db:
+        with self.get_db() as db:
             repo: BaseRepository[ModelType] = BaseRepository(self.Model, db)
             service: BaseService[ModelType, BaseRepository[ModelType]] = BaseService(
                 repo
@@ -118,7 +120,7 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
         self.update()
 
     def load_instances(self) -> None:
-        with session_local() as db:
+        with self.get_db() as db:
             repo: BaseRepository[ModelType] = BaseRepository(self.Model, db)
             service: BaseService[ModelType, BaseRepository[ModelType]] = BaseService(
                 repo
