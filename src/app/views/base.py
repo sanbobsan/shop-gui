@@ -52,6 +52,8 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
         self.BaseSchema: Type[BaseSchemaType] = BaseSchema
         self.Model: Type[ModelType] = Model
         self.BaseCard = BaseCard[BaseSchemaType]
+        # data
+        self.title: str = self.Model.__name__
         # content
         self.text_fields: list[ft.TextField] = [
             ft.TextField(

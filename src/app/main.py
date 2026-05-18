@@ -30,7 +30,7 @@ def main(page: ft.Page) -> None:
         length=len(containers),
         content=ft.Column(
             [
-                ft.TabBar(tabs=[ft.Tab("Tab") for container in containers]),
+                ft.TabBar(tabs=[ft.Tab(container.title) for container in containers]),
                 ft.TabBarView(expand=True, controls=containers),
             ],
         ),
