@@ -20,8 +20,8 @@ class ProductSchema(BaseSchema):
 class SaleItemSchema(BaseSchema):
     quantity: int = Field(title="Quantity")
 
-    product_id: int = Field("Product ID")
-    receipt_id: int = Field("Receipt ID")
+    product_id: int = Field(title="Product ID")
+    receipt_id: int = Field(title="Receipt ID")
 
 
 class JobTitleSchema(BaseSchema):
