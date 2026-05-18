@@ -12,26 +12,32 @@ BaseSchemaType = TypeVar("BaseSchemaType", bound=BaseSchema)
 class BaseCard(ft.Card, Generic[BaseSchemaType]):
     def __init__(self, schema: BaseSchema, on_delete: Callable[[int], None]) -> None:
         super().__init__()
-
+        # data
         self.schema: BaseSchemaType = schema
-
         assert self.schema.id
-        self.button = ft.Button("Delete", on_click=lambda _: on_delete(self.schema.id))
-        self.content_row = ft.Row(
+        # content
+        self.content_row: ft.Row = ft.Row(
             controls=[
-                ft.Text(field.value)
+                ft.Container(
+                    ft.Text(field.value, text_align=ft.TextAlign.CENTER),
+                    expand=True,
+                )
                 for field in self.schema.get_field_data(include_id=True)
             ],
-            alignment=ft.MainAxisAlignment.CENTER,
             expand=True,
+            alignment=ft.MainAxisAlignment.SPACE_EVENLY,
         )
+        self.button = ft.Button("Delete", on_click=lambda _: on_delete(self.schema.id))
 
-        self.content = ft.Row(
-            controls=[
-                self.content_row,
-                self.button,
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+        self.content = ft.Container(
+            ft.Row(
+                controls=[
+                    self.content_row,
+                    self.button,
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            ),
+            padding=6,
         )
 
 
@@ -42,11 +48,11 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
         Model: Type[ModelType],
     ) -> None:
         super().__init__()
-
+        # base
         self.BaseSchema: Type[BaseSchemaType] = BaseSchema
         self.Model: Type[ModelType] = Model
         self.BaseCard = BaseCard[BaseSchemaType]
-
+        # content
         self.text_fields: list[ft.TextField] = [
             ft.TextField(
                 label=(field.title),
@@ -56,13 +62,13 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
             for field in self.BaseSchema.get_field_desc()
         ]
         self.button = ft.Button("Add", on_click=self.add_instance)
-        self.add_row = ft.Row(self.text_fields + [self.button])
+        self.add_row = ft.Container(ft.Row(self.text_fields + [self.button]), padding=5)
         self.cards = ft.Column()
 
         self.padding = 10
         self.content = ft.Column(
             [
-                ft.Container(self.add_row, padding=5),
+                self.add_row,
                 self.cards,
             ],
             scroll=ft.ScrollMode.AUTO,
