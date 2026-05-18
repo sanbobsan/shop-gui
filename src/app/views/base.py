@@ -5,6 +5,7 @@ import flet as ft
 from app.database import session_local
 from app.repositories.base import BaseRepository, ModelType
 from app.schemas.base import BaseSchema
+from app.services.base import BaseService
 
 BaseSchemaType = TypeVar("BaseSchemaType", bound=BaseSchema)
 
@@ -84,8 +85,10 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
 
         with session_local() as db:  # dependency injection?
             repo: BaseRepository[ModelType] = BaseRepository(self.Model, db)
-            # BaseService?
-            model: ModelType = repo.create(**schema.model_dump())
+            service: BaseService[ModelType, BaseRepository[ModelType]] = BaseService(
+                repo
+            )
+            model: ModelType = service.create_instance(**schema.model_dump())
             schema.id = model.id
             db.commit()
 
@@ -103,7 +106,10 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
     def delete_instance(self, instance_id: int) -> None:
         with session_local() as db:
             repo: BaseRepository[ModelType] = BaseRepository(self.Model, db)
-            repo.delete(instance_id)
+            service: BaseService[ModelType, BaseRepository[ModelType]] = BaseService(
+                repo
+            )
+            service.delete_instance(instance_id)
             db.commit()
 
         self.cards.controls = [
@@ -114,7 +120,10 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
     def load_instances(self) -> None:
         with session_local() as db:
             repo: BaseRepository[ModelType] = BaseRepository(self.Model, db)
-            instances: list[ModelType] = repo.get_all()
+            service: BaseService[ModelType, BaseRepository[ModelType]] = BaseService(
+                repo
+            )
+            instances: list[ModelType] = service.get_all_instances()
 
         for instance in instances:
             schema: BaseSchemaType = self.BaseSchema.model_validate(instance)
