@@ -1,6 +1,9 @@
+from contextlib import contextmanager
 from typing import Callable, Generic, Type, TypeVar
 
 import flet as ft
+from pydantic import ValidationError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.repositories.base import BaseRepository, ModelType
@@ -54,7 +57,21 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
         self.BaseSchema: Type[BaseSchemaType] = BaseSchema
         self.Model: Type[ModelType] = Model
         self.BaseCard = BaseCard[BaseSchemaType]
-        self.get_db: Callable[..., Session] = session_factory
+
+        @contextmanager
+        def safe_session_factory():
+            db: Session = session_factory()
+            try:
+                yield db
+            except SQLAlchemyError as e:
+                db.rollback()
+                raise e
+            else:
+                db.commit()
+            finally:
+                db.close()
+
+        self.get_db: Callable[..., Session] = safe_session_factory
         # data
         self.title: str = self.Model.__name__
         # content
@@ -79,20 +96,33 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
             scroll=ft.ScrollMode.AUTO,
         )
 
+    def show_alert(self, error: str) -> None:
+        self.dlg = ft.AlertDialog(
+            title=ft.Text("Возникла ошибка"),
+            content=ft.Text(error),
+            alignment=ft.Alignment.CENTER,
+            open=True,
+        )
+        self.page.show_dialog(self.dlg)
+
     def add_instance(self) -> None:
         schema_dict: dict[str, str] = {
             field.data: field.value for field in self.text_fields
         }
-        schema: BaseSchemaType = self.BaseSchema.model_validate(schema_dict)
+        try:
+            schema: BaseSchemaType = self.BaseSchema.model_validate(schema_dict)
 
-        with self.get_db() as db:
-            repo: BaseRepository[ModelType] = BaseRepository(self.Model, db)
-            service: BaseService[ModelType, BaseRepository[ModelType]] = BaseService(
-                repo
-            )
-            model: ModelType = service.create_instance(**schema.model_dump())
-            schema.id = model.id
-            db.commit()
+            with self.get_db() as db:
+                repo: BaseRepository[ModelType] = BaseRepository(self.Model, db)
+                service: BaseService[ModelType, BaseRepository[ModelType]] = (
+                    BaseService(repo)
+                )
+                model: ModelType = service.create_instance(**schema.model_dump())
+                schema.id = model.id
+                db.commit()
+        except (SQLAlchemyError, ValidationError) as e:
+            self.show_alert(str(e))
+            return
 
         card: BaseCard[BaseSchemaType] = self.BaseCard(
             schema,
@@ -106,13 +136,17 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
         self.update()
 
     def delete_instance(self, instance_id: int) -> None:
-        with self.get_db() as db:
-            repo: BaseRepository[ModelType] = BaseRepository(self.Model, db)
-            service: BaseService[ModelType, BaseRepository[ModelType]] = BaseService(
-                repo
-            )
-            service.delete_instance(instance_id)
-            db.commit()
+        try:
+            with self.get_db() as db:
+                repo: BaseRepository[ModelType] = BaseRepository(self.Model, db)
+                service: BaseService[ModelType, BaseRepository[ModelType]] = (
+                    BaseService(repo)
+                )
+                service.delete_instance(instance_id)
+                db.commit()
+        except (SQLAlchemyError, ValidationError) as e:
+            self.show_alert(str(e))
+            return
 
         self.cards.controls = [
             card for card in self.cards.controls if card.schema.id != instance_id
@@ -120,12 +154,16 @@ class BaseContainer(ft.Container, Generic[BaseSchemaType]):
         self.update()
 
     def load_instances(self) -> None:
-        with self.get_db() as db:
-            repo: BaseRepository[ModelType] = BaseRepository(self.Model, db)
-            service: BaseService[ModelType, BaseRepository[ModelType]] = BaseService(
-                repo
-            )
-            instances: list[ModelType] = service.get_all_instances()
+        try:
+            with self.get_db() as db:
+                repo: BaseRepository[ModelType] = BaseRepository(self.Model, db)
+                service: BaseService[ModelType, BaseRepository[ModelType]] = (
+                    BaseService(repo)
+                )
+                instances: list[ModelType] = service.get_all_instances()
+        except (SQLAlchemyError, ValidationError) as e:
+            self.show_alert(str(e))
+            return
 
         for instance in instances:
             schema: BaseSchemaType = self.BaseSchema.model_validate(instance)
